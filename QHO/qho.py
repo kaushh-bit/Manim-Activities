@@ -2,69 +2,88 @@ from manim import *
 import numpy as np
 from scipy.special import factorial, hermite
 
-class QHO(Scene):
+# constants
+m = 1
+omega = 1
+hbar = 1
+
+# defining eigenfunctions and eigenvalues
+def psi_n(n, x):
+    alpha = (m * omega) / hbar
+    xi = np.sqrt(alpha) * x
+    norm = np.sqrt(1 / (2**n * factorial(n))) * (alpha / PI)**0.25
+    Hn = hermite(n)
+    return norm * Hn(xi) * np.exp( - xi**2 / 2)
+
+def E_n(n):
+    return hbar * omega * (n + 0.5)
+
+def psi_nt(n, x, t):
+    return psi_n(n, x) * np.exp((-1j * E_n(n) * t) / hbar)
+
+
+######################################################################################################
+
+
+class QHO(ThreeDScene):
     def construct(self):
-        # constants
-        m = 1
-        omega = 1
-        hbar = 1
-
-        # axes and labels
-        ax1 = Axes(
-            x_range=(-4, 4, 1),
-            y_range=(-1, 1, 0.25),
-            x_length=6,
+        
+        #axes and labels
+        ax = ThreeDAxes(
+            x_range=(-10, 10, 1),
+            y_range=(-1, 1, 0.5),
+            z_range=(-10, 10, 1),
+            x_length=10,
             y_length=6,
-            tips=False
+            z_length=8,
+            tips=False,
         )
+        self.add(ax)
 
-        labels1 = ax1.get_axis_labels("x", "\psi_{n}")
-
-        # defining eigenfunctions and eigenvalues
-        def psi_n(n, x):
-            alpha = (m * omega) / hbar
-            xi = np.sqrt(alpha) * x
-            norm = np.sqrt(1 / (2**n * factorial(n))) * (alpha / PI)**0.25
-            Hn = hermite(n)
-            return norm * Hn(xi) * np.exp( - xi**2 / 2)
-        
-        def E_n(n):
-            return hbar * omega * (n + 0.5)
-        
-        def psi_nt(n, x, t):
-            return psi_n(n, x) * np.exp((-1j * E_n(n) * t) / hbar)
-        
         # plotting the real and imaginary part of psi
         t = ValueTracker(0)
-        n = 10
+        n = 7
 
         def Re_psi(x):
             return np.real(psi_nt(n, x, t.get_value()))
         def Im_psi(x):
             return np.imag(psi_nt(n, x, t.get_value()))
         
-        Re_wave = always_redraw(lambda: ax1.plot(Re_psi, x_range=(-4, 4), color=RED))
-        Im_wave = always_redraw(lambda: ax1.plot(Im_psi, x_range=(-4, 4), color=BLUE))
+        Re_wave = always_redraw(lambda: ax.plot(Re_psi, x_range=(-7, 7), color=RED))
+        Im_wave = always_redraw(lambda: ax.plot(Im_psi, x_range=(-7, 7), color=BLUE))
 
-        self.add(Re_wave, Im_wave)
+        self.add(ax, Re_wave, Im_wave)
+        self.play(t.animate.set_value(4), run_time=5, rate_func=linear)
 
-        ax2 = Axes(
-            x_range=(-4, 4, 1),
-            y_range=(0, 0.5, 0.1),
-            x_length=6,
-            y_length=6,
-            tips=False
+        #calling qho func
+        x = np.linspace(-10,10,500)
+        #t = np.linspace(1,10,500)
+        qho_plot_tot = ax.plot_line_graph(x, psi_n(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=YELLOW)
+        '''qho_plot_Re = ax.plot_line_graph(x, Re_psi, add_vertex_dots=False, line_color=BLUE)
+        qho_plot_Im = ax.plot_line_graph(x, Im_psi, add_vertex_dots=False, line_color=RED)'''
+
+        self.play(
+            ReplacementTransform(Re_wave, qho_plot_tot,),
+            ReplacementTransform(Im_wave, qho_plot_tot,),
+            run_time=2,
         )
-        ax2.next_to(ax1, RIGHT, buff=1)
-        labels2 = ax2.get_axis_labels("x", MathTex(r"|\psi|^2"))
-        axes = VGroup(ax1, ax2, labels1, labels2)
-        axes.move_to(ORIGIN)
-        self.add(axes)
 
-        def prob_density(x):
-            return np.abs(psi_nt(n, x, t.get_value()))**2
-        
-        pdf = always_redraw(lambda: ax2.plot(prob_density, x_range=(-4, 4)))
-        self.add(pdf)
 
-        self.play(t.animate.set_value(10), run_time=10, rate_func=linear)
+        #other eigenstates
+        self.move_camera(theta=-1.4)
+        self.move_camera(phi=-0.5)
+
+        plots = []
+        _color = [RED, BLUE, GREEN, YELLOW, PINK, ORANGE]
+        for n in range(0,6):
+            qho_plot_ = ax.plot_line_graph(x, psi_n(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=_color[n])
+            plots.append(qho_plot_)
+
+        '''self.play(
+            AnimationGroup(
+                *[Create(plot) for plot in plots]
+            ), 
+            run_time=6
+        )'''
+
+        self.play(Create(VGroup(*plots)), run_time=4)

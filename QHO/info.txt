@@ -1,3 +1,5 @@
+----------------------------------------------------- without time dependence -----------------------------------------------------------
+
 from manim import *
 import numpy as np
 from scipy.special import factorial, hermite
@@ -89,4 +91,26 @@ class QHO(ThreeDScene):
             run_time=6
         )
 
+----------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------ prob density code ---------------------------------------------------------------
+        ax2 = Axes(
+            x_range=(-4, 4, 1),
+            y_range=(0, 0.5, 0.1),
+            x_length=6,
+            y_length=6,
+            tips=False
+        )
+        ax2.next_to(ax1, RIGHT, buff=1)
+        labels2 = ax2.get_axis_labels("x", MathTex(r"|\psi|^2"))
+        axes = VGroup(ax1, ax2, labels1, labels2)
+        axes.move_to(ORIGIN)
+        self.add(axes)
+
+        def prob_density(x):
+            return np.abs(psi_nt(n, x, t.get_value()))**2
         
+        pdf = always_redraw(lambda: ax2.plot(prob_density, x_range=(-4, 4)))
+        self.add(pdf)
+
+        self.play(t.animate.set_value(10), run_time=10, rate_func=linear)
+----------------------------------------------------------------------------------------------------------------------------------------
