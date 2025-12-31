@@ -1,0 +1,92 @@
+from manim import *
+import numpy as np
+from scipy.special import factorial, hermite
+
+def qho(n, x, t):
+    #constants
+    m = 1
+    omega = 1
+    hbar = 1
+
+    #defining eigenfunctions and eigenvalues
+    def psi_n(n, x):
+        alpha = (m * omega) / hbar
+        xi = np.sqrt(alpha) * x
+        norm = np.sqrt(1 / (2**n * factorial(n))) * (alpha / np.pi)**0.25
+        Hn = hermite(n)
+        return norm * Hn(xi) * np.exp(-xi**2 / 2)
+    
+    def E_n(n):
+        return hbar * omega * (n + 0.5)
+    
+    def psi_nt(n, x, t):
+        Psi_nt = psi_n(n, x) * np.exp((-1j * E_n(n) * t) / hbar)
+        Re_psi = np.real(Psi_nt)
+        Im_psi = np.imag(Psi_nt)
+        return Re_psi, Im_psi
+    
+    return psi_n(n, x), E_n(n), psi_nt(n, x, t)
+
+
+######################################################################################################
+
+class QHO(ThreeDScene):
+    def construct(self, ):
+        '''heading = Text("Quantum Harmonic Oscillators")
+        self.play(Write(heading))
+        self.wait(3)'''
+
+        #axes and labels
+        ax = ThreeDAxes(
+            x_range=(-10, 10, 1),
+            y_range=(-1, 1, 0.5),
+            z_range=(0, 7, 1),
+            x_length=10,
+            y_length=6,
+            z_length=6,
+            tips=False,
+        )
+        self.add(ax)
+
+        #calling qho func
+        x = np.linspace(-10,10,500)
+        #t = np.linspace(1,10,500)
+        t = 1
+        _psi_n, _E_n, _psi = qho(7, x, t)
+        _Re_psi, _Im_psi = _psi[0], _psi[1]
+
+        # create all plots
+        qho_plot_tot = ax.plot_line_graph(x, _psi_n, np.full_like(x, 7), add_vertex_dots=False, line_color=YELLOW)
+        qho_plot_Re = ax.plot_line_graph(x, _Re_psi, add_vertex_dots=False, line_color=BLUE)
+        qho_plot_Im = ax.plot_line_graph(x, _Im_psi, add_vertex_dots=False, line_color=RED)
+
+        self.play(
+            Create(qho_plot_Re), 
+            Create(qho_plot_Im), 
+            run_time=3,
+        )
+
+        self.play(
+            ReplacementTransform(qho_plot_Im, qho_plot_tot,),
+            ReplacementTransform(qho_plot_Re, qho_plot_tot,),
+            run_time=2,
+        )
+
+        self.move_camera(theta=-1.4)
+        self.move_camera(phi = -0.5)
+
+        plots = []
+        _color = [RED, BLUE, GREEN, YELLOW, PINK, ORANGE]
+        for n in range(0,6):
+            _psi_n, _E_n, _psi = qho(n, x, t)
+            qho_plot_ = ax.plot_line_graph(x, _psi_n, np.full_like(x, n), add_vertex_dots=False, line_color=_color[n])
+            plots.append(qho_plot_)
+
+        self.play(
+            AnimationGroup(
+                *[Create(plot) for plot in plots]
+            ), 
+            run_time=6
+        )
+
+        
