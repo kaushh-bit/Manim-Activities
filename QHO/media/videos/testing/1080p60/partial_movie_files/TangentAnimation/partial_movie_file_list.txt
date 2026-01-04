@@ -1,2 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:C:/Users/itska/manimations/QHO/media/videos/testing/1080p60/partial_movie_files/TangentAnimation/3544663784_1547725069_40535255.mp4'

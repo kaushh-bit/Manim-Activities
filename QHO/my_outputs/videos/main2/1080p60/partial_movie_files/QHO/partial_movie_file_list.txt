@@ -1,6 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:C:/Users/itska/manimations/Manim-Activities/QHO/my_outputs/videos/main2/1080p60/partial_movie_files/QHO/2880046002_4209543139_2787530659.mp4'
-file 'file:C:/Users/itska/manimations/Manim-Activities/QHO/my_outputs/videos/main2/1080p60/partial_movie_files/QHO/3962140938_3899852774_2814130514.mp4'
-file 'file:C:/Users/itska/manimations/Manim-Activities/QHO/my_outputs/videos/main2/1080p60/partial_movie_files/QHO/3240680086_2120938948_2654960622.mp4'
-file 'file:C:/Users/itska/manimations/Manim-Activities/QHO/my_outputs/videos/main2/1080p60/partial_movie_files/QHO/2202066356_2120938948_2582875662.mp4'
-file 'file:C:/Users/itska/manimations/Manim-Activities/QHO/my_outputs/videos/main2/1080p60/partial_movie_files/QHO/3086939700_2071393799_142502338.mp4'

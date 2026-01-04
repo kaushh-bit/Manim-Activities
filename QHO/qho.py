@@ -21,6 +21,9 @@ def E_n(n):
 def psi_nt(n, x, t):
     return psi_n(n, x) * np.exp((-1j * E_n(n) * t) / hbar)
 
+def prob_density(n,x):
+            return np.abs(psi_n(n, x))**2
+
 
 ######################################################################################################
 
@@ -29,7 +32,7 @@ class QHO(ThreeDScene):
     def construct(self):
         
         #axes and labels
-        ax = ThreeDAxes(
+        ax1 = ThreeDAxes(
             x_range=(-10, 10, 1),
             y_range=(-1, 1, 0.5),
             z_range=(-10, 10, 1),
@@ -38,7 +41,20 @@ class QHO(ThreeDScene):
             z_length=8,
             tips=False,
         )
-        self.add(ax)
+
+        ax2 = ThreeDAxes(
+            x_range=(-10, 10, 1),
+            y_range=(-1, 1, 0.5),
+            z_range=(-10, 10, 1),
+            x_length=10,
+            y_length=6,
+            z_length=8,
+            tips=False,
+        )
+
+        axes = VGroup(ax1, ax2)
+        axes.move_to(ORIGIN)
+        self.add(axes)
 
         # plotting the real and imaginary part of psi
         t = ValueTracker(0)
@@ -49,35 +65,76 @@ class QHO(ThreeDScene):
         def Im_psi(x):
             return np.imag(psi_nt(n, x, t.get_value()))
         
-        Re_wave = always_redraw(lambda: ax.plot(Re_psi, x_range=(-7, 7), color=RED))
-        Im_wave = always_redraw(lambda: ax.plot(Im_psi, x_range=(-7, 7), color=BLUE))
+        Re_wave = always_redraw(lambda: ax2.plot(Re_psi, x_range=(-7, 7), color=RED))
+        Im_wave = always_redraw(lambda: ax2.plot(Im_psi, x_range=(-7, 7), color=BLUE))
 
-        self.add(ax, Re_wave, Im_wave)
+        self.add(ax2, Re_wave, Im_wave)
         self.play(t.animate.set_value(4), run_time=5, rate_func=linear)
 
         #calling qho func
         x = np.linspace(-10,10,500)
         #t = np.linspace(1,10,500)
-        qho_plot_tot = ax.plot_line_graph(x, psi_n(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=YELLOW)
-        '''qho_plot_Re = ax.plot_line_graph(x, Re_psi, add_vertex_dots=False, line_color=BLUE)
-        qho_plot_Im = ax.plot_line_graph(x, Im_psi, add_vertex_dots=False, line_color=RED)'''
+        qho_prob_density = ax2.plot_line_graph(x, prob_density(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=YELLOW)
+        '''qho_plot_Re = ax2.plot_line_graph(x, Re_psi, add_vertex_dots=False, line_color=BLUE)
+        qho_plot_Im = ax2.plot_line_graph(x, Im_psi, add_vertex_dots=False, line_color=RED)'''
+
+
+
+        # ----Prob Density Part ----
+        '''def prob_density(x):
+            return np.abs(psi_nt(n, x, t.get_value()))**2
+        
+        pdf = always_redraw(lambda: ax2.plot(prob_density, x_range=(-7, 7)))
+        self.add(pdf)'''
+        # ----part over ----
+        
+
 
         self.play(
-            ReplacementTransform(Re_wave, qho_plot_tot,),
-            ReplacementTransform(Im_wave, qho_plot_tot,),
-            run_time=2,
-        )
+                ReplacementTransform(Re_wave, qho_prob_density),
+                ReplacementTransform(Im_wave, qho_prob_density),
+                run_time=2,
+                )
 
 
         #other eigenstates
         self.move_camera(theta=-1.4)
         self.move_camera(phi=-0.5)
 
-        plots = []
+        self.play(
+            FadeOut(qho_prob_density),
+            run_time=1,
+        )
+
+        #funky stuff
+        self.play(
+            ax2.animate.shift(RIGHT * 3.5).scale(0.6),
+            ax1.animate.shift(LEFT * 3.5).scale(0.6),
+            run_time=2,
+        )
+
+
+
+        '''self.play(ax1.animate.rotate(30 * DEGREES, Y_AXIS))
+        self.play(ax1.animate.rotate(45 * DEGREES, X_AXIS))
+        '''
+
+
+
+        '''plots = []
+        probDF = []'''
         _color = [RED, BLUE, GREEN, YELLOW, PINK, ORANGE]
+
         for n in range(0,6):
-            qho_plot_ = ax.plot_line_graph(x, psi_n(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=_color[n])
-            plots.append(qho_plot_)
+            qho_plot_ = ax1.plot_line_graph(x, psi_n(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=_color[n])
+            #plots.append(qho_plot_)
+            
+            pdf_ = ax2.plot_line_graph(x, prob_density(n, x), np.full_like(x, n), add_vertex_dots=False, line_color=_color[n])
+            #plots.append(qho_plot_)
+
+            self.play(Create(qho_plot_), Create(pdf_),)
+            self.wait(1)
+            self.play(FadeOut(qho_plot_), FadeOut(pdf_))
 
         '''self.play(
             AnimationGroup(
@@ -86,4 +143,6 @@ class QHO(ThreeDScene):
             run_time=6
         )'''
 
-        self.play(Create(VGroup(*plots)), run_time=4)
+        #self.play(Create(VGroup(*plots)), run_time=4)
+
+
